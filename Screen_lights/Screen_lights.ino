@@ -90,7 +90,7 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 Elegoo_GFX_Button buttons[15];
 /* create 15 buttons, in classic candybar phone style */
 int buttonValue[3] = {0,0,0};
-char buttonlabels[15][5] = {"Send", "Clr", "End"};
+char buttonlabels[15][5] = {"t 1", "t 2", "t 3"};
 uint16_t buttoncolors[15] = {ILI9341_DARKGREEN, ILI9341_DARKGREY, ILI9341_RED};
                              
 void setup(void) {
@@ -256,15 +256,15 @@ void ButtonPress(int b,int value)
 
   if (b == 0)
   {
-    
+    setText("test 1");
   }
   else if (b == 1)
   {
-    
+    setText("test 2");
   }
   else if (b == 2)
   {
-    
+    setText("test 3");
   }
 
      // if a numberpad button, append the relevant # to the textfield
@@ -279,6 +279,7 @@ void ButtonPress(int b,int value)
         }
 
    // clr button! delete char
+      /*
         if (b == 1) {
           
           textfield[textfield_i] = 0;
@@ -287,14 +288,9 @@ void ButtonPress(int b,int value)
             textfield[textfield_i] = ' ';
           }
         }
+*/
 
-        // update the current text field
-        Serial.println(textfield);
-        tft.setCursor(TEXT_X + 2, TEXT_Y+10);
-        tft.setTextColor(TEXT_TCOLOR, ILI9341_BLACK);
-        tft.setTextSize(TEXT_TSIZE);
-        tft.print(textfield);
-
+/*
         // its always OK to just hang up
         if (b == 2) {
           status(F("Hanging up"));
@@ -308,7 +304,21 @@ void ButtonPress(int b,int value)
           
           //fona.callPhone(textfield);
         }
+        */
 }
+
+void setText(String textInput)
+{
+
+   // update the current text field
+   Serial.println(textfield);
+   tft.setCursor(TEXT_X + 2, TEXT_Y+10);
+   tft.setTextColor(TEXT_TCOLOR, ILI9341_BLACK);
+   tft.setTextSize(TEXT_TSIZE);
+   tft.print(textInput);
+}
+  
+
 
 
 
