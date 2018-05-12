@@ -43,18 +43,6 @@
 #define ILI9341_GREENYELLOW 0xAFE5      /* 173, 255,  47 */
 #define ILI9341_PINK        0xF81F
 
-// text box where numbers go
-#define TEXT_X 10
-#define TEXT_Y 10
-#define TEXT_W 220
-#define TEXT_H 50
-#define TEXT_TSIZE 3
-#define TEXT_TCOLOR ILI9341_MAGENTA
-// the data (phone #) we store in the textfield
-#define TEXT_LEN 12
-char textfield[TEXT_LEN+1] = "";
-uint8_t textfield_i=0;
-
 #define YP A3  // must be an analog pin, use "An" notation!
 #define XM A2  // must be an analog pin, use "An" notation!
 #define YM 9   // can be a digital pin
@@ -67,10 +55,10 @@ uint8_t textfield_i=0;
 #define TS_MINY 70
 #define TS_MAXY 920
 // We have a status line for like, is FONA working
-#define STATUS_X 10
-#define STATUS_Y 65
+//#define STATUS_X 10
+//#define STATUS_Y 65
 
-int DimmerValue[5] ={5,5,5,5,5};
+int DimmerValue[5] ={2,2,2,2,2};
 bool buttonOn[40] ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int screenID = 1;
 
@@ -99,9 +87,6 @@ void bottomButtons()
 
 void screen1()
 {
-   // create 'text field'
-  //tft.drawRect(10, 10, 220, 50, ILI9341_WHITE);
-  
    // id,width,height,locationX,locationY,spaceX,spaceY,color,text[10]
    int width = 40;
   int space = 5;
@@ -110,7 +95,7 @@ void screen1()
       int locx = ((width+space)*((i-9)))-15;  
         createButton(i,
                     width,40,
-                    locx,85,
+                    locx,25,
                     10,10,
                     ILI9341_BLACK,"");
    }
@@ -118,35 +103,40 @@ void screen1()
         width = 105;
         createButton(0,
                     width,60,
-                    60,160,
+                    60,90,
                     10,10,
                     ILI9341_BLACK,"Svefn");
 
         createButton(1,
                     width,60,
-                    180,160,
+                    180,90,
                     10,10,
                     ILI9341_BLACK,"Stofa");
 
         createButton(2,
                     width,60,
-                    60,240,
+                    60,160,
                     10,10,
                     ILI9341_BLACK,"Eldhus");
 
         createButton(3,
                     width,60,
-                    180,240,
+                    180,160,
                     10,10,
                     ILI9341_BLACK,"Bad");
 
+        createButton(4,
+                    width,60,
+                    60,230,
+                    10,10,
+                    ILI9341_BLACK,"Vifta");
 
-    // setDimmer();    
+     setButtons();    
 }
 
 void screen2()
 {
-  tft.fillRect(5, 5, 240, 8, ILI9341_BLACK);
+  tft.fillRect(5, 5, 20, 8, ILI9341_BLACK);
   tft.setCursor(5, 5);
   tft.setTextColor(ILI9341_WHITE);
   tft.setTextSize(1);
@@ -167,7 +157,7 @@ void screen2()
 
   /* */
 
-  tft.fillRect(5, 60, 240, 8, ILI9341_BLACK);
+  tft.fillRect(5, 60, 20, 8, ILI9341_BLACK);
   tft.setCursor(5, 60);
   tft.setTextColor(ILI9341_WHITE);
   tft.setTextSize(1);
@@ -185,7 +175,7 @@ void screen2()
 
   /* */
 
-  tft.fillRect(5, 115, 240, 8, ILI9341_BLACK);
+  tft.fillRect(5, 115, 20, 8, ILI9341_BLACK);
   tft.setCursor(5, 115);
   tft.setTextColor(ILI9341_WHITE);
   tft.setTextSize(1);
@@ -203,7 +193,7 @@ void screen2()
 
   /* */
 
-  tft.fillRect(5, 170, 240, 8, ILI9341_BLACK);
+  tft.fillRect(5, 170, 20, 8, ILI9341_BLACK);
   tft.setCursor(5, 170);
   tft.setTextColor(ILI9341_WHITE);
   tft.setTextSize(1);
@@ -293,23 +283,8 @@ else if (screenID == 3)
   buttons[7].drawButton(true);
 } 
 }
-// Print something in the mini status bar with either flashstring
-void status(const __FlashStringHelper *msg) {
-  tft.fillRect(STATUS_X, STATUS_Y, 240, 8, ILI9341_BLACK);
-  tft.setCursor(STATUS_X, STATUS_Y);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(1);
-  tft.print(msg);
-}
-// or charstring
-void status(char *msg) {
-  tft.fillRect(STATUS_X, STATUS_Y, 240, 8, ILI9341_BLACK);
-  tft.setCursor(STATUS_X, STATUS_Y);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(1);
-  tft.print(msg);
-}
-#define MINPRESSURE 10
+
+#define MINPRESSURE 5
 #define MAXPRESSURE 1000
 void loop(void) {
 
@@ -403,24 +378,24 @@ void ButtonPress(int b,int value)
   */
 }
 
-void setText(String textInput)
+void setButtons()
 {
-   // update the current text field
-   Serial.println(textfield);
-   tft.setCursor(TEXT_X + 2, TEXT_Y+10);
-   tft.setTextColor(TEXT_TCOLOR, ILI9341_BLACK);
-   tft.setTextSize(TEXT_TSIZE);
-   tft.print(textInput);
-}
-
-void setDimmer()
-{
-
+   if (screenID == 1 || screenID == 3)
+  {
+  for(int i=0;i<5;i++)
+      {
+        if (buttonOn[i])
+          buttons[i].drawButton(true);
+        else
+          buttons[i].drawButton(false);
+       }
+  }
+  
    if (screenID == 2 || screenID == 1)
   {
   for(int i=10;i<15;i++)
       {
-        if (i<=DimmerValue[0])
+        if ((i-10)<=DimmerValue[0])
         buttons[i].drawButton(true);
         else
         buttons[i].drawButton(false);
@@ -432,44 +407,57 @@ void setDimmer()
   
   for(int i=15;i<20;i++)
       {
-        if (i<=DimmerValue[1])
+        if ((i-15)<=DimmerValue[1])
         buttons[i].drawButton(true);
         else
         buttons[i].drawButton(false);
         }
   for(int i=20;i<25;i++)
       {
-        if (i<=DimmerValue[2])
+        if ((i-20)<=DimmerValue[2])
         buttons[i].drawButton(true);
         else
         buttons[i].drawButton(false);
         }
   for(int i=25;i<30;i++)
       {
-        if (i<=DimmerValue[3])
+        if ((i-25)<=DimmerValue[3])
         buttons[i].drawButton(true);
         else
         buttons[i].drawButton(false);
         }
+   for(int i=30;i<35;i++)
+      {
+        if ((i-30)<=DimmerValue[4])
+        buttons[i].drawButton(true);
+        else
+        buttons[i].drawButton(false);
+        }
+        
   }
 }
 void whatButtonPress(TSPoint p)
 {
 
+   if (screenID == 2 || screenID == 1)
+  {
   for (uint8_t b=10; b<15; b++) {
     if (buttons[b].contains(p.x, p.y)) {
       buttons[b].press(true);  // tell the button it is pressed
       DimmerValue[0] = b;
-      setDimmer();      
+      setButtons();      
     } else {
       buttons[b].press(false);  // tell the button it is NOT pressed
     }
   }
+  }
+     if (screenID == 2)
+  {
 for (uint8_t b=15; b<20; b++) {
     if (buttons[b].contains(p.x, p.y)) {
       buttons[b].press(true);  // tell the button it is pressed
       DimmerValue[1] = b;
-      setDimmer();      
+      setButtons();      
     } else {
       buttons[b].press(false);  // tell the button it is NOT pressed
     }
@@ -478,7 +466,7 @@ for (uint8_t b=20; b<25; b++) {
     if (buttons[b].contains(p.x, p.y)) {
       buttons[b].press(true);  // tell the button it is pressed
       DimmerValue[2] = b;
-      setDimmer();      
+      setButtons();      
     } else {
       buttons[b].press(false);  // tell the button it is NOT pressed
     }
@@ -487,12 +475,24 @@ for (uint8_t b=25; b<30; b++) {
     if (buttons[b].contains(p.x, p.y)) {
       buttons[b].press(true);  // tell the button it is pressed
       DimmerValue[3] = b;
-      setDimmer();      
+      setButtons();      
+    } else {
+      buttons[b].press(false);  // tell the button it is NOT pressed
+    }
+  }
+for (uint8_t b=30; b<35; b++) {
+    if (buttons[b].contains(p.x, p.y)) {
+      buttons[b].press(true);  // tell the button it is pressed
+      DimmerValue[4] = b;
+      setButtons();      
     } else {
       buttons[b].press(false);  // tell the button it is NOT pressed
     }
   }
   
+  }
+  if (screenID == 1 || screenID == 3)
+  {
 for (uint8_t b=0; b<7; b++) {
     if (buttons[b].contains(p.x, p.y)) {
       buttons[b].press(true);  // tell the button it is pressed     
@@ -513,13 +513,16 @@ for (uint8_t b=0; b<7; b++) {
       buttons[b].press(false);  // tell the button it is NOT pressed
     }
   }
-
+  }
  if(buttons[9].contains(p.x, p.y) && !buttonOn[9]) 
  {
+    //Elegoo_GFX_Button buttons[40];
     tft.fillScreen(BLACK);  
+    bottomButtons();  
     buttonOn[9] = 0;
     screenID = 1;
     screen1();
+    setButtons();
     buttons[9].drawButton(true);
 
     buttons[7].drawButton(false);
@@ -528,10 +531,13 @@ for (uint8_t b=0; b<7; b++) {
  }
 if(buttons[8].contains(p.x, p.y) && !buttonOn[8]) 
  {
+    //Elegoo_GFX_Button buttons[40];
     tft.fillScreen(BLACK);  
+    bottomButtons();
     buttonOn[8] = 0;
     screenID = 2;
     screen2();
+    setButtons();
     buttons[8].drawButton(true);
 
     buttons[7].drawButton(false);
@@ -540,10 +546,13 @@ if(buttons[8].contains(p.x, p.y) && !buttonOn[8])
  }  
 if(buttons[7].contains(p.x, p.y) && !buttonOn[7]) 
  {
+    // tft.reset();
     tft.fillScreen(BLACK);  
+    bottomButtons();
     buttonOn[7] = 0;
     screenID = 3;
     screen3();
+     setButtons();
     buttons[7].drawButton(true);
 
     buttons[8].drawButton(false);
