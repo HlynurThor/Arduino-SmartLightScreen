@@ -43,15 +43,6 @@
 #define ILI9341_GREENYELLOW 0xAFE5      /* 173, 255,  47 */
 #define ILI9341_PINK        0xF81F
 
-/******************* UI details */
-#define BUTTON_X 40
-#define BUTTON_Y 100
-#define BUTTON_W 60
-#define BUTTON_H 30
-#define BUTTON_SPACING_X 20
-#define BUTTON_SPACING_Y 20
-#define BUTTON_TEXTSIZE 2
-
 // text box where numbers go
 #define TEXT_X 10
 #define TEXT_Y 10
@@ -79,21 +70,98 @@ uint8_t textfield_i=0;
 #define STATUS_X 10
 #define STATUS_Y 65
 
-
+int DimmerValue =5;
 
 Elegoo_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-// If using the shield, all control and data lines are fixed, and
-// a simpler declaration can optionally be used:
-// Elegoo_TFTLCD tft;
-
-Elegoo_GFX_Button buttons[15];
-/* create 15 buttons, in classic candybar phone style */
-int buttonValue[3] = {0,0,0};
-char buttonlabels[15][5] = {"t 1", "t 2", "t 3"};
-uint16_t buttoncolors[15] = {ILI9341_DARKGREEN, ILI9341_DARKGREY, ILI9341_RED};
+Elegoo_GFX_Button buttons[30];
+bool buttonOn[30] ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                              
 void setup(void) {
+
+  setupScreen();
+
+ // create 'text field'
+  tft.drawRect(10, 10, 220, 50, ILI9341_WHITE);
+
+  // id,width,height,locationX,locationY,spaceX,spaceY,color,text[10]
+  int width = 22;
+  for(int i=1;i<11;i++)
+  {   
+        createButton(i,
+                    width,40,
+                    (width*i),85,
+                    0,0,
+                    ILI9341_BLACK,"");
+   }
+         
+        width = 105;
+        createButton(21,
+                    width,60,
+                    60,160,
+                    10,10,
+                    ILI9341_BLACK,"Svefn");
+
+        createButton(22,
+                    width,60,
+                    180,160,
+                    10,10,
+                    ILI9341_BLACK,"Stofa");
+
+        createButton(23,
+                    width,60,
+                    60,240,
+                    10,10,
+                    ILI9341_BLACK,"Eldhus");
+
+        createButton(24,
+                    width,60,
+                    180,240,
+                    10,10,
+                    ILI9341_BLACK,"Bad");
+
+
+     setDimmer();               
+}
+// Print something in the mini status bar with either flashstring
+void status(const __FlashStringHelper *msg) {
+  tft.fillRect(STATUS_X, STATUS_Y, 240, 8, ILI9341_BLACK);
+  tft.setCursor(STATUS_X, STATUS_Y);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextSize(1);
+  tft.print(msg);
+}
+// or charstring
+void status(char *msg) {
+  tft.fillRect(STATUS_X, STATUS_Y, 240, 8, ILI9341_BLACK);
+  tft.setCursor(STATUS_X, STATUS_Y);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextSize(1);
+  tft.print(msg);
+}
+#define MINPRESSURE 10
+#define MAXPRESSURE 1000
+void loop(void) {
+
+  digitalWrite(13, HIGH);
+  TSPoint p = ts.getPoint();
+  digitalWrite(13, LOW);
+
+  pinMode(XM, OUTPUT);
+  pinMode(YP, OUTPUT);
+
+   if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
+    // scale from 0->1023 to tft.width
+    p.x = map(p.x, TS_MINX, TS_MAXX, tft.width(), 0);
+    p.y = (tft.height()-map(p.y, TS_MINY, TS_MAXY, tft.height(), 0));
+   }
+   
+ whatButtonPress(p);
+  
+}
+
+void setupScreen()
+{
   Serial.begin(9600);
   Serial.println(F("TFT LCD test"));
 
@@ -139,177 +207,34 @@ void setup(void) {
 
   tft.begin(identifier);
   tft.setRotation(2);
-  tft.fillScreen(BLACK);
-  
-  // create buttons
-  for (uint8_t row=0; row<5; row++) {
-    for (uint8_t col=0; col<3; col++) {
-      int buttonId = col + row*3;
-      
-      buttons[buttonId].initButton(&tft, BUTTON_X+col*(BUTTON_W+BUTTON_SPACING_X), 
-                 BUTTON_Y+row*(BUTTON_H+BUTTON_SPACING_Y),    // x, y, w, h, outline, fill, text
-                  BUTTON_W, BUTTON_H, ILI9341_WHITE, buttoncolors[buttonId], ILI9341_WHITE,
-                  buttonlabels[buttonId], BUTTON_TEXTSIZE); 
-      buttons[buttonId].drawButton();
-    }
-  }
-  
-  // create 'text field'
-  tft.drawRect(TEXT_X, TEXT_Y, TEXT_W, TEXT_H, ILI9341_WHITE);
+  tft.fillScreen(BLACK);  
 }
-// Print something in the mini status bar with either flashstring
-void status(const __FlashStringHelper *msg) {
-  tft.fillRect(STATUS_X, STATUS_Y, 240, 8, ILI9341_BLACK);
-  tft.setCursor(STATUS_X, STATUS_Y);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(1);
-  tft.print(msg);
-}
-// or charstring
-void status(char *msg) {
-  tft.fillRect(STATUS_X, STATUS_Y, 240, 8, ILI9341_BLACK);
-  tft.setCursor(STATUS_X, STATUS_Y);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(1);
-  tft.print(msg);
-}
-#define MINPRESSURE 10
-#define MAXPRESSURE 1000
-void loop(void) {
-  /*TSPoint p;
-  p = ts.getPoint(); 
-  */
-  digitalWrite(13, HIGH);
-  TSPoint p = ts.getPoint();
-  digitalWrite(13, LOW);
-
-  // if sharing pins, you'll need to fix the directions of the touchscreen pins
-  //pinMode(XP, OUTPUT);
-  pinMode(XM, OUTPUT);
-  pinMode(YP, OUTPUT);
-  //pinMode(YM, OUTPUT);
-
-  // we have some minimum pressure we consider 'valid'
-  // pressure of 0 means no pressing!
-  
- // p = ts.getPoint(); 
-  /*
-  if (ts.bufferSize()) {
-    
-  } else {
-    // this is our way of tracking touch 'release'!
-    p.x = p.y = p.z = -1;
-  }*/
-  
-  // Scale from ~0->4000 to tft.width using the calibration #'s
-  /*
-  if (p.z != -1) {
-    p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
-    p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
-    Serial.print("("); Serial.print(p.x); Serial.print(", "); 
-    Serial.print(p.y); Serial.print(", "); 
-    Serial.print(p.z); Serial.println(") ");
-  }*/
-   if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
-    // scale from 0->1023 to tft.width
-    p.x = map(p.x, TS_MINX, TS_MAXX, tft.width(), 0);
-    p.y = (tft.height()-map(p.y, TS_MINY, TS_MAXY, tft.height(), 0));
-   }
-   
-  // go thru all the buttons, checking if they were pressed
-  for (uint8_t b=0; b<sizeof(buttonValue); b++) {
-    if (buttons[b].contains(p.x, p.y)) {
-      //Serial.print("Pressing: "); Serial.println(b);
-      buttons[b].press(true);  // tell the button it is pressed
-    } else {
-      buttons[b].press(false);  // tell the button it is NOT pressed
-    }
-  }
-
-  // now we can ask the buttons if their state has changed
-  for (uint8_t b=0; b<sizeof(buttonValue); b++) {
-    if (buttons[b].justReleased()) {
-      // Serial.print("Released: "); Serial.println(b);
-      buttons[b].drawButton();  // draw normal
-    }
-
-
-   
-    
-    if (buttons[b].justPressed()) {
-        buttons[b].drawButton(true);  // draw invert!
-        
-         ButtonPress(b,0);       
-      delay(1000); // UI debouncing
-    }
-  }
-  
-}
-
 void ButtonPress(int b,int value)
 {
+  /*
   Serial.print("Button Id: "); 
   Serial.print(b);
   Serial.print(" value: "); 
-  Serial.print(buttonValue[b]);
+  //Serial.print(buttonValue[b]);
   Serial.println();
 
   if (b == 0)
   {
-    setText("test 1");
+    setText("1");
   }
   else if (b == 1)
   {
-    setText("test 2");
+    setText("2");
   }
   else if (b == 2)
   {
-    setText("test 3");
+    setText("3");
   }
-
-     // if a numberpad button, append the relevant # to the textfield
-        if (b >= 3) {
-          if (textfield_i < TEXT_LEN) {
-            textfield[textfield_i] = buttonlabels[b][0];
-            textfield_i++;
-      textfield[textfield_i] = 0; // zero terminate
-            
-           // fona.playDTMF(buttonlabels[b][0]);
-          }
-        }
-
-   // clr button! delete char
-      /*
-        if (b == 1) {
-          
-          textfield[textfield_i] = 0;
-          if (textfield > 0) {
-            textfield_i--;
-            textfield[textfield_i] = ' ';
-          }
-        }
-*/
-
-/*
-        // its always OK to just hang up
-        if (b == 2) {
-          status(F("Hanging up"));
-          //fona.hangUp();
-        }
-        // we dont really check that the text field makes sense
-        // just try to call
-        if (b == 0) {
-          status(F("Calling"));
-          Serial.print("Calling "); Serial.print(textfield);
-          
-          //fona.callPhone(textfield);
-        }
-        */
+  */
 }
 
 void setText(String textInput)
 {
-
    // update the current text field
    Serial.println(textfield);
    tft.setCursor(TEXT_X + 2, TEXT_Y+10);
@@ -317,7 +242,75 @@ void setText(String textInput)
    tft.setTextSize(TEXT_TSIZE);
    tft.print(textInput);
 }
+
+void setDimmer()
+{
+  for(int i=1;i<11;i++)
+      {
+        if (i<=DimmerValue)
+        buttons[i].drawButton(true);
+        else
+        buttons[i].drawButton(false);
+        }
+}
+void whatButtonPress(TSPoint p)
+{
+   // go thru all the buttons, checking if they were pressed
+  for (uint8_t b=1; b<11; b++) {
+    if (buttons[b].contains(p.x, p.y)) {
+      //Serial.print("Pressing: "); Serial.println(b);
+      buttons[b].press(true);  // tell the button it is pressed
+      DimmerValue = b;
+      setDimmer();
+      
+    } else {
+      buttons[b].press(false);  // tell the button it is NOT pressed
+    }
+  }
+ setText(DimmerValue +"");
   
+for (uint8_t b=20; b<25; b++) {
+    if (buttons[b].contains(p.x, p.y)) {
+      buttons[b].press(true);  // tell the button it is pressed     
+    } else {
+      buttons[b].press(false);  // tell the button it is NOT pressed
+    }
+  }
+for(uint8_t b=20;b<25;b++)
+{
+  if (buttons[b].justPressed()) 
+  {
+    if (!buttonOn[b])
+    {
+      buttons[b].drawButton(true); 
+      buttonOn[b] = 1;
+    }      
+    else
+    {
+      buttons[b].drawButton(false); 
+      buttonOn[b] = 0;
+    }
+     delay(1000);  
+  }
+      
+
+}
+
+}
+void createButton(int buttonId,
+                    int width,int height,
+                    int locationX,int locationY,
+                    int spaceX,int spaceY,
+                    uint16_t color,char text[10])
+{
+  // x, y, w, h, outline, fill, text
+  buttons[buttonId].initButton(&tft, locationX, 
+                 locationY,    
+                  width, height, ILI9341_WHITE, color, ILI9341_WHITE,
+                  text, 2); 
+                  
+      buttons[buttonId].drawButton();
+}
 
 
 
