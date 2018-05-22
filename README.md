@@ -1,5 +1,5 @@
-﻿## SmartHomeScreen
-Smart house project for summer house, 
+## SmartHomeScreen
+Smart house project, 
 
 ### Smartscreen to control another arduino over Wifi. 
 ### Arduino board to control dimmers.
@@ -8,3 +8,16 @@ Smart house project for summer house,
 ![Screen 1](https://github.com/hlynurxxx/SmartHomeScreen/blob/master/img/1.jpg)
 ![Screen 2](https://github.com/hlynurxxx/SmartHomeScreen/blob/master/img/2.jpg)
 ![Screen 3](https://github.com/hlynurxxx/SmartHomeScreen/blob/master/img/3.jpg)
+
+
+## Reciever listen over wifi
+
+![Reciever 1](https://github.com/hlynurxxx/SmartHomeScreen/blob/master/img/20180516_200928.jpg)
+
+
+![Reciever 2](https://github.com/hlynurxxx/SmartHomeScreen/blob/master/img/20180516_200940.jpg)
+
+![Reciever 2](https://github.com/hlynurxxx/SmartHomeScreen/blob/master/img/0000072_8-channel-ac-programmable-light-dimmer-module-controller-board-arduino-raspberry-compatible-5060hz.jpeg
+)
+
+
